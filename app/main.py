@@ -142,6 +142,9 @@ def should_use_cache(request: Request) -> bool:
     ctrl = request.headers.get("x-cache-control", "").lower()
     if "no-cache" in ctrl or "bypass" in ctrl:
         return False
+    q_cache = request.query_params.get("cache", "").lower()
+    if q_cache in ("false", "0", "no", "bypass", "no-cache"):
+        return False
     return True
 
 

@@ -86,13 +86,17 @@ def test_product_crud_auth_and_cache_lifecycle():
         assert get_hit.headers.get("X-Cache") == "HIT"
         assert get_hit.json() == p1
 
-        # Bypass header forces DB read
+        # Bypass header or query parameter forces DB read
         get_bypass = client.get(
             f"/products/{p1['id']}",
             headers={**auth, "X-Cache-Control": "no-cache"},
         )
         assert get_bypass.status_code == 200
         assert get_bypass.headers.get("X-Cache") == "BYPASS"
+
+        get_bypass_q = client.get(f"/products/{p1['id']}?cache=bypass", headers=auth)
+        assert get_bypass_q.status_code == 200
+        assert get_bypass_q.headers.get("X-Cache") == "BYPASS"
 
         # TTL expiration test (CACHE_TTL_SECONDS=2)
         time.sleep(2.1)
