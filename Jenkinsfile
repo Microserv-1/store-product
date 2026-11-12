@@ -7,7 +7,21 @@ pipeline {
   }
   stages {
     stage('Checkout') { steps { checkout scm } }
-    stage('Test') { steps { sh '''docker run --rm -v "$PWD:/src" -w /src python:3.12-slim sh -c 'pip install -r requirements.txt && python -m pytest -q'''' } }
+    stage('Test') {
+      steps {
+        sh '''
+          docker run --rm \
+            -v "$PWD:/src:ro" \
+            -e PYTHONPATH=/src \
+            -w /tmp \
+            python:3.12-slim \
+            sh -ec '
+              pip install -r /src/requirements.txt
+              python -m pytest /src/tests -q -p no:cacheprovider
+            '
+        '''
+      }
+    }
     stage('Build') {
       steps {
         script {
